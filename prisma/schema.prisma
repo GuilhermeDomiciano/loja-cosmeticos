@@ -1,0 +1,277 @@
+// ================== PRISMA BASICO ==================
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================== ENUMS ==================
+enum Unidade {
+  UN
+  ML
+  G
+  KG
+  L
+}
+
+enum TipoMovimentacao {
+  ENTRADA
+  SAIDA
+}
+
+enum MotivoMovimentacao {
+  COMPRA
+  VENDA
+  AJUSTE
+  DEVOLUCAO
+  TRANSFERENCIA
+  PERDA
+}
+
+enum CanalVenda {
+  BALCAO
+  WHATSAPP
+  INSTAGRAM
+  MARKETPLACE
+  OUTRO
+}
+
+enum MetodoPagamento {
+  DINHEIRO
+  PIX
+  CREDITO
+  DEBITO
+  BOLETO
+  TRANSFERENCIA
+  OUTRO
+}
+
+enum TipoTransacao {
+  RECEBER // receita
+  PAGAR // despesa
+}
+
+enum StatusTransacao {
+  PENDENTE
+  PAGO
+  RECEBIDO
+  CANCELADO
+  VENCIDO
+}
+
+// ================== ENTIDADES DE ACESSO ==================
+model Organizacao {
+  id       String   @id @default(uuid())
+  nome     String
+  criadoEm DateTime @default(now())
+
+  usuarios   Usuario[]
+  categorias Categoria[]
+  produtos   Produto[]
+  variacoes  VariacaoProduto[]
+  lotes      LoteEstoque[]
+  movimentos MovimentacaoEstoque[]
+  kits       Kit[]
+  itensKit   ItemKit[]
+  transacoes TransacaoFinanceira[]
+  arquivos   Arquivo[]
+
+  @@unique([nome])
+}
+
+model Usuario {
+  id            String   @id @default(uuid())
+  organizacaoId String
+  email         String   @unique
+  nome          String
+  senha         String // hash (bcrypt/argon2)
+  papel         String   @default("owner")
+  criadoEm      DateTime @default(now())
+
+  organizacao Organizacao @relation(fields: [organizacaoId], references: [id])
+
+  @@index([organizacaoId])
+}
+
+// ================== CATALOGO ==================
+model Categoria {
+  id            String   @id @default(uuid())
+  organizacaoId String
+  nome          String
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  organizacao Organizacao @relation(fields: [organizacaoId], references: [id])
+  produtos    Produto[]
+
+  @@unique([organizacaoId, nome])
+  @@index([organizacaoId])
+}
+
+model Produto {
+  id            String   @id @default(uuid())
+  organizacaoId String
+  categoriaId   String?
+  nome          String
+  descricao     String?
+  sku           String?
+  ativo         Boolean  @default(true)
+  imagemUrl     String?
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  organizacao Organizacao       @relation(fields: [organizacaoId], references: [id])
+  categoria   Categoria?        @relation(fields: [categoriaId], references: [id])
+  variacoes   VariacaoProduto[]
+
+  @@unique([organizacaoId, nome])
+  @@unique([organizacaoId, sku])
+  @@index([organizacaoId])
+  @@index([categoriaId])
+}
+
+model VariacaoProduto {
+  id            String   @id @default(uuid())
+  organizacaoId String
+  produtoId     String
+  nome          String?
+  sku           String?
+  unidade       Unidade  @default(UN)
+  codigoBarras  String?
+  preco         Decimal  @db.Decimal(12, 2)
+  custo         Decimal? @db.Decimal(12, 2)
+  estoqueMinimo Decimal? @db.Decimal(12, 3)
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  organizacao Organizacao           @relation(fields: [organizacaoId], references: [id])
+  produto     Produto               @relation(fields: [produtoId], references: [id])
+  lotes       LoteEstoque[]
+  itensKit    ItemKit[]
+  movimentos  MovimentacaoEstoque[]
+
+  @@unique([organizacaoId, sku])
+  @@index([organizacaoId])
+  @@index([produtoId])
+}
+
+// ================== ESTOQUE (LOTES E MOVIMENTACOES) ==================
+model LoteEstoque {
+  id            String    @id @default(uuid())
+  organizacaoId String
+  variacaoId    String
+  codigo        String?
+  quantidade    Decimal   @db.Decimal(12, 3)
+  venceEm       DateTime?
+  criadoEm      DateTime  @default(now())
+  atualizadoEm  DateTime  @updatedAt
+
+  organizacao Organizacao           @relation(fields: [organizacaoId], references: [id])
+  variacao    VariacaoProduto       @relation(fields: [variacaoId], references: [id])
+  movimentos  MovimentacaoEstoque[]
+
+  @@index([organizacaoId])
+  @@index([variacaoId])
+}
+
+model MovimentacaoEstoque {
+  id            String             @id @default(uuid())
+  organizacaoId String
+  variacaoId    String
+  loteId        String?
+  tipo          TipoMovimentacao
+  motivo        MotivoMovimentacao
+  quantidade    Decimal            @db.Decimal(12, 3)
+  precoUnitario Decimal?           @db.Decimal(12, 2)
+  total         Decimal?           @db.Decimal(12, 2)
+  canal         CanalVenda?
+  observacoes   String?
+  criadoEm      DateTime           @default(now())
+
+  organizacao Organizacao           @relation(fields: [organizacaoId], references: [id])
+  variacao    VariacaoProduto       @relation(fields: [variacaoId], references: [id])
+  lote        LoteEstoque?          @relation(fields: [loteId], references: [id])
+  transacoes  TransacaoFinanceira[]
+
+  @@index([organizacaoId])
+  @@index([variacaoId])
+  @@index([loteId])
+  @@index([criadoEm])
+}
+
+// ================== KITS ==================
+model Kit {
+  id            String   @id @default(uuid())
+  organizacaoId String
+  nome          String
+  sku           String?
+  preco         Decimal  @db.Decimal(12, 2)
+  ativo         Boolean  @default(true)
+  imagemUrl     String?
+  criadoEm      DateTime @default(now())
+  atualizadoEm  DateTime @updatedAt
+
+  organizacao Organizacao @relation(fields: [organizacaoId], references: [id])
+  itens       ItemKit[]
+
+  @@unique([organizacaoId, nome])
+  @@unique([organizacaoId, sku])
+  @@index([organizacaoId])
+}
+
+model ItemKit {
+  id            String  @id @default(uuid())
+  organizacaoId String
+  kitId         String
+  variacaoId    String
+  quantidade    Decimal @db.Decimal(12, 3)
+
+  organizacao Organizacao     @relation(fields: [organizacaoId], references: [id])
+  kit         Kit             @relation(fields: [kitId], references: [id])
+  variacao    VariacaoProduto @relation(fields: [variacaoId], references: [id])
+
+  @@unique([kitId, variacaoId])
+  @@index([organizacaoId])
+}
+
+// ================== FINANCEIRO ==================
+model TransacaoFinanceira {
+  id             String           @id @default(uuid())
+  organizacaoId  String
+  tipo           TipoTransacao
+  status         StatusTransacao  @default(PENDENTE)
+  metodo         MetodoPagamento?
+  valor          Decimal          @db.Decimal(12, 2)
+  dataVencimento DateTime?
+  pagoEm         DateTime?
+  descricao      String?
+  movimentacaoId String?
+  criadoEm       DateTime         @default(now())
+  atualizadoEm   DateTime         @updatedAt
+
+  organizacao  Organizacao          @relation(fields: [organizacaoId], references: [id])
+  movimentacao MovimentacaoEstoque? @relation(fields: [movimentacaoId], references: [id])
+
+  @@index([organizacaoId])
+  @@index([tipo])
+  @@index([status])
+  @@index([dataVencimento])
+}
+
+// ================== ARQUIVOS (BUCKET SUPABASE) ==================
+model Arquivo {
+  id            String   @id @default(uuid())
+  organizacaoId String
+  caminho       String // ex: product-images/uuid.jpg
+  url           String?
+  entidade      String // "produto" | "kit" | "movimentacao" | etc.
+  entidadeId    String
+  criadoEm      DateTime @default(now())
+
+  organizacao Organizacao @relation(fields: [organizacaoId], references: [id])
+
+  @@index([organizacaoId, entidade, entidadeId])
+}
