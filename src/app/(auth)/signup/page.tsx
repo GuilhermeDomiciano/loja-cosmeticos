@@ -44,7 +44,7 @@ export default function SignUpPage() {
       if (orgId) localStorage.setItem("orgId", String(orgId));
 
       toast.success("Conta criada com sucesso!");
-      router.push(params.get("next") || "/(app)");
+      router.push(params.get("next") || "/dashboard");
     } catch (e: any) {
       toast.error(e.message);
     } finally {

@@ -47,7 +47,7 @@ export async function POST(req: Request) {
       message: "Login OK",
     });
 
-    setAuthCookie(token); 
+    await setAuthCookie(token); 
     return res;
   } catch (e: any) {
     if (e?.name === "ZodError") {

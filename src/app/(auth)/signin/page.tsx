@@ -39,10 +39,7 @@ export default function SignInPage() {
       if (!res.ok) throw new Error(payload?.message || "Falha no login");
 
       toast.success("Login realizado com sucesso!");
-      router.push(params.get("next") || "/(app)");
-
-      toast.success("Login realizado com sucesso!");
-      router.push(params.get("next") || "/(app)");
+      router.push(params.get("next") || "/dashboard");
     } catch (e: any) {
       toast.error(e.message);
     } finally {

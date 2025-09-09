@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       organizacoes: [{ id: org.id, nome: org.nome }],
       message: "Conta criada com sucesso",
     });
-    setAuthCookie(token);
+    await setAuthCookie(token);
     return res;
   } catch (e: any) {
     if (e?.name === "ZodError") {
