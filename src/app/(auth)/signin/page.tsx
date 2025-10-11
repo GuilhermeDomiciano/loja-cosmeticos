@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const schema = z.object({
   email: z.string().min(1, "Informe o e-mail").email("E-mail inválido"),
@@ -20,6 +21,7 @@ export default function SignInPage() {
   const router = useRouter();
   const params = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const { setUser, setOrganization } = useAuth();
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -37,6 +39,20 @@ export default function SignInPage() {
 
       const payload = await res.json();
       if (!res.ok) throw new Error(payload?.message || "Falha no login");
+
+      // Atualizar stores com dados do usuário
+      if (payload.user) {
+        setUser({
+          id: payload.user.id,
+          nome: payload.user.nome,
+          email: payload.user.email,
+          organizacaoId: payload.user.organizacaoId,
+        });
+      }
+      
+      if (payload.organizacoes?.[0]) {
+        setOrganization(payload.organizacoes[0]);
+      }
 
       toast.success("Login realizado com sucesso!");
       router.push(params.get("next") || "/dashboard");

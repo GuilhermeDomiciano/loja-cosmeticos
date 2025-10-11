@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 const schema = z.object({
   nome: z.string().min(1, "Informe seu nome"),
@@ -22,6 +23,7 @@ export default function SignUpPage() {
   const router = useRouter();
   const params = useSearchParams();
   const [loading, setLoading] = useState(false);
+  const { setUser, setOrganization } = useAuth();
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -40,8 +42,19 @@ export default function SignUpPage() {
       const payload = await res.json();
       if (!res.ok) throw new Error(payload?.message || "Falha no cadastro");
 
-      const orgId = payload?.organizacoes?.[0]?.id ?? null;
-      if (orgId) localStorage.setItem("orgId", String(orgId));
+      // Atualizar stores com dados do usuário
+      if (payload.user) {
+        setUser({
+          id: payload.user.id,
+          nome: payload.user.nome,
+          email: payload.user.email,
+          organizacaoId: payload.user.organizacaoId,
+        });
+      }
+      
+      if (payload.organizacoes?.[0]) {
+        setOrganization(payload.organizacoes[0]);
+      }
 
       toast.success("Conta criada com sucesso!");
       router.push(params.get("next") || "/dashboard");
