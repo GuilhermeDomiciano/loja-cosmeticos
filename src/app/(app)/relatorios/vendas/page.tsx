@@ -9,6 +9,28 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Link from "next/link";
 
+interface Movimentacao {
+  id: string;
+  tipo: string;
+  motivo: string;
+  quantidade: number;
+  canalVenda?: string;
+  precoUnitario?: number;
+  variacaoProduto?: {
+    produto?: {
+      nome?: string;
+    };
+  };
+}
+
+interface Transacao {
+  id: string;
+  tipo: string;
+  descricao: string;
+  valor: number;
+  metodoPagamento?: string;
+}
+
 interface DadosVendas {
   totalVendas: number;
   quantidadeVendas: number;
@@ -43,21 +65,21 @@ export default function RelatorioVendasPage() {
       const movRes = await fetch("/api/movimentacoes");
       const movimentacoes = await movRes.json();
 
-      const vendas = movimentacoes.filter(
-        (m: any) => m.tipo === "SAIDA" && m.motivo === "VENDA"
+      const vendas = (movimentacoes as Movimentacao[]).filter(
+        (m) => m.tipo === "SAIDA" && m.motivo === "VENDA"
       );
 
       // Buscar transações financeiras de vendas
       const transRes = await fetch("/api/transacoes-financeiras");
       const transacoes = await transRes.json();
 
-      const vendasFinanceiras = transacoes.filter(
-        (t: any) => t.tipo === "RECEBER" && t.descricao.includes("Venda")
+      const vendasFinanceiras = (transacoes as Transacao[]).filter(
+        (t) => t.tipo === "RECEBER" && t.descricao.includes("Venda")
       );
 
       // Calcular métricas
       const totalVendas = vendasFinanceiras.reduce(
-        (acc: number, t: any) => acc + t.valor,
+        (acc: number, t) => acc + t.valor,
         0
       );
       const quantidadeVendas = vendasFinanceiras.length;
@@ -65,14 +87,14 @@ export default function RelatorioVendasPage() {
 
       // Vendas por canal
       const vendasPorCanal: Record<string, number> = {};
-      vendas.forEach((v: any) => {
+      vendas.forEach((v) => {
         const canal = v.canalVenda || "Não especificado";
         vendasPorCanal[canal] = (vendasPorCanal[canal] || 0) + 1;
       });
 
       // Vendas por método de pagamento
       const vendasPorMetodo: Record<string, number> = {};
-      vendasFinanceiras.forEach((t: any) => {
+      vendasFinanceiras.forEach((t) => {
         const metodo = t.metodoPagamento || "Não especificado";
         vendasPorMetodo[metodo] = (vendasPorMetodo[metodo] || 0) + 1;
       });
@@ -82,7 +104,7 @@ export default function RelatorioVendasPage() {
         string,
         { quantidade: number; valor: number }
       > = {};
-      vendas.forEach((v: any) => {
+      vendas.forEach((v) => {
         const nome = v.variacaoProduto?.produto?.nome || "Produto";
         if (!produtosMap[nome]) {
           produtosMap[nome] = { quantidade: 0, valor: 0 };

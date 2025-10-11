@@ -291,7 +291,7 @@ export default function KitDetalhesPage() {
           <DialogHeader>
             <DialogTitle>Deletar Kit</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja deletar o kit "{kit.nome}"? Esta ação não
+              Tem certeza que deseja deletar o kit &quot;{kit.nome}&quot;? Esta ação não
               pode ser desfeita.
             </DialogDescription>
           </DialogHeader>

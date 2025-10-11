@@ -332,7 +332,7 @@ export default function NovoKitPage() {
               <div className="text-center py-8 text-muted-foreground">
                 <Calculator className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>Nenhum item adicionado ainda</p>
-                <p className="text-sm">Clique em "Adicionar Item" para começar</p>
+                <p className="text-sm">Clique em &quot;Adicionar Item&quot; para começar</p>
               </div>
             ) : (
               <div className="space-y-2">

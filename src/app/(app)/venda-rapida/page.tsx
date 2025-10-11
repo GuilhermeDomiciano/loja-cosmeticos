@@ -23,6 +23,7 @@ interface Kit {
   id: string;
   nome: string;
   preco: number;
+  ativo?: boolean;
   itens: Array<{
     quantidade: number;
     variacaoProduto: { id: string };

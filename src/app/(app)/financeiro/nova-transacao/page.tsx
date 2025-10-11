@@ -179,7 +179,7 @@ export default function NovaTransacaoPage() {
 
         <div className="flex gap-2 mt-6">
           <Link href="/financeiro" className="flex-1 sm:flex-none">
-            <Button type="button" variant="outline" className="w-full sm:w-auto">
+            <Button variant="outline" className="w-full sm:w-auto">
               Cancelar
             </Button>
           </Link>

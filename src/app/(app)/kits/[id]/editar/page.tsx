@@ -28,6 +28,17 @@ interface KitItem {
   produtoNome?: string;
 }
 
+interface ItemResponse {
+  variacaoProduto: {
+    id: string;
+    nome: string;
+    produto: {
+      nome: string;
+    };
+  };
+  quantidade: number;
+}
+
 export default function EditarKitPage() {
   const params = useParams();
   const router = useRouter();
@@ -73,7 +84,7 @@ export default function EditarKitPage() {
       });
 
       setItens(
-        data.itens.map((item: any) => ({
+        data.itens.map((item: ItemResponse) => ({
           variacaoProdutoId: item.variacaoProduto.id,
           quantidade: item.quantidade,
           variacaoNome: item.variacaoProduto.nome,
@@ -360,7 +371,7 @@ export default function EditarKitPage() {
               <div className="text-center py-8 text-muted-foreground">
                 <Calculator className="h-12 w-12 mx-auto mb-2 opacity-50" />
                 <p>Nenhum item adicionado ainda</p>
-                <p className="text-sm">Clique em "Adicionar Item" para começar</p>
+                <p className="text-sm">Clique em &quot;Adicionar Item&quot; para começar</p>
               </div>
             ) : (
               <div className="space-y-2">
