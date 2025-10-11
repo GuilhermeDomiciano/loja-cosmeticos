@@ -4,54 +4,67 @@ import {
   categoriaUpdateSchema,
 } from "../models/categoriaSchema";
 import { CategoriaService, categoriaService } from "../services/categoriaService";
+import { requireAuth } from "@/lib/auth";
 
 export class CategoriaController {
   constructor(private readonly service: CategoriaService) {}
 
-  async listar(req: Request) {
-    const { searchParams } = new URL(req.url);
-    const organizacaoId = searchParams.get("organizacaoId");
-    if (!organizacaoId) {
-      return NextResponse.json(
-        { message: "organizacaoId é obrigatório" },
-        { status: 400 }
-      );
-    }
-
+  async listar(_req: Request) {
     try {
-      const data = await this.service.listar(organizacaoId);
-      return NextResponse.json({ data, message: "Listagem de categorias" });
-    } catch {
+      console.log('[CategoriaController] Tentando autenticar usuário...');
+      const user = await requireAuth();
+      console.log('[CategoriaController] Usuário autenticado:', { id: user.sub, organizacaoId: user.organizacaoId });
+      
+      if (!user.organizacaoId) {
+        console.error('[CategoriaController] Usuário sem organizacaoId');
+        return NextResponse.json(
+          { message: "Usuário sem organização" },
+          { status: 400 }
+        );
+      }
+
+      const data = await this.service.listar(user.organizacaoId);
+      console.log('[CategoriaController] Categorias encontradas:', data.length);
+      return NextResponse.json(data);
+    } catch (error) {
+      console.error('[CategoriaController] Erro:', error);
       return NextResponse.json(
-        { message: "Erro ao listar categorias" },
+        { message: error instanceof Error ? error.message : "Erro ao listar categorias" },
         { status: 500 }
       );
     }
   }
 
   async criar(req: Request) {
-    let body: unknown;
     try {
-      body = await req.json();
-    } catch {
-      return NextResponse.json({ message: "JSON inválido" }, { status: 400 });
-    }
+      const user = await requireAuth();
+      if (!user.organizacaoId) {
+        return NextResponse.json(
+          { message: "Usuário sem organização" },
+          { status: 400 }
+        );
+      }
 
-    const parse = categoriaCreateSchema.safeParse(body);
-    if (!parse.success) {
-      const first = parse.error.issues[0];
-      return NextResponse.json(
-        { message: first?.message ?? "Dados inválidos" },
-        { status: 400 }
-      );
-    }
+      let body: unknown;
+      try {
+        body = await req.json();
+      } catch {
+        return NextResponse.json({ message: "JSON inválido" }, { status: 400 });
+      }
 
-    try {
+      // Adicionar organizacaoId automaticamente
+      const dataWithOrg = { ...body as object, organizacaoId: user.organizacaoId };
+      const parse = categoriaCreateSchema.safeParse(dataWithOrg);
+      if (!parse.success) {
+        const first = parse.error.issues[0];
+        return NextResponse.json(
+          { message: first?.message ?? "Dados inválidos" },
+          { status: 400 }
+        );
+      }
+
       const created = await this.service.criar(parse.data);
-      return NextResponse.json(
-        { data: created, message: "Categoria criada" },
-        { status: 201 }
-      );
+      return NextResponse.json(created, { status: 201 });
     } catch (err) {
       if (err instanceof Error) {
         return NextResponse.json({ message: err.message }, { status: 400 });

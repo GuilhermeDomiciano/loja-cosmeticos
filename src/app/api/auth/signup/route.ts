@@ -44,7 +44,12 @@ export async function POST(req: Request) {
       include: { organizacao: true },
     });
 
-    const token = await createJwt({ sub: user.id, email: user.email, nome: user.nome });
+    const token = await createJwt({ 
+      sub: user.id, 
+      email: user.email, 
+      nome: user.nome,
+      organizacaoId: org.id,
+    });
     const res = NextResponse.json({
       user: { id: user.id, nome: user.nome, email: user.email, organizacaoId: user.organizacaoId },
       organizacoes: [{ id: org.id, nome: org.nome }],

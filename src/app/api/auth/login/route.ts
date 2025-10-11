@@ -32,6 +32,7 @@ export async function POST(req: Request) {
       sub: String(user.id),
       email: user.email,
       nome: user.nome ?? "",
+      organizacaoId: user.organizacaoId ?? undefined,
     });
 
     const res = NextResponse.json({
