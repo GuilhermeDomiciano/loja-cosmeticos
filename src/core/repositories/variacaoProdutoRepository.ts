@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import type { Unidade } from "@prisma/client";
 
 export class VariacaoProdutoRepository {
   async listarPorOrganizacao(organizacaoId: string) {
@@ -15,7 +16,7 @@ export class VariacaoProdutoRepository {
     produtoId: string;
     nome?: string | null;
     sku?: string | null;
-    unidade?: string; // enum string
+    unidade?: Unidade;
     codigoBarras?: string | null;
     preco: string; // Decimal as string
     custo?: string | null;
@@ -24,7 +25,7 @@ export class VariacaoProdutoRepository {
     return prisma.variacaoProduto.create({
       data: {
         ...data,
-        unidade: (data.unidade as any) ?? undefined,
+        unidade: data.unidade ?? undefined,
       },
     });
   }
@@ -33,7 +34,7 @@ export class VariacaoProdutoRepository {
     data: {
       nome?: string | null;
       sku?: string | null;
-      unidade?: string; // enum string
+      unidade?: Unidade;
       codigoBarras?: string | null;
       preco?: string;
       custo?: string | null;
@@ -44,7 +45,7 @@ export class VariacaoProdutoRepository {
       where: { id },
       data: {
         ...data,
-        unidade: (data.unidade as any) ?? undefined,
+        unidade: data.unidade ?? undefined,
       },
     });
   }

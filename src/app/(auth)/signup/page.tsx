@@ -45,8 +45,8 @@ export default function SignUpPage() {
 
       toast.success("Conta criada com sucesso!");
       router.push(params.get("next") || "/dashboard");
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao criar conta");
     } finally {
       setLoading(false);
     }

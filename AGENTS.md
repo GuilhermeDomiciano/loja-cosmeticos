@@ -8,6 +8,28 @@
 - Armazenamento de arquivos com `Supabase` (cliente em `src/lib/supabase.ts`).
 - UI com `Tailwind CSS` v4; estado e dados com `Zustand` e `@tanstack/react-query`.
 
+## ⚠️ DIRETRIZ CRÍTICA: MOBILE-FIRST
+
+**TODAS as interfaces devem ser desenvolvidas com abordagem MOBILE-FIRST:**
+
+- **Prioridade absoluta**: Projetar e desenvolver PRIMEIRO para telas mobile (smartphones).
+- **Responsive progressivo**: Após garantir funcionamento perfeito no mobile, expandir para tablet e desktop.
+- **Tailwind mobile-first**: Usar classes base para mobile e breakpoints (`sm:`, `md:`, `lg:`, `xl:`) para telas maiores.
+- **Touch-friendly**: Botões e áreas clicáveis com tamanho mínimo de 44x44px para facilitar toque.
+- **Navegação mobile**: Priorizar menus hambúrguer, bottom navigation, e gestos de swipe.
+- **Performance**: Otimizar imagens e assets para conexões móveis mais lentas.
+- **Testes obrigatórios**: Sempre testar em dispositivos mobile reais ou emuladores antes de considerar concluído.
+
+**Exemplo de abordagem correta no Tailwind:**
+```tsx
+{/* Base = mobile, depois ajustes para desktop */}
+<div className="p-4 md:p-8 flex flex-col md:flex-row">
+  <button className="w-full md:w-auto py-3 px-6 text-base">
+    Ação
+  </button>
+</div>
+```
+
 ## Objetivo do Sistema
 
 - Gerenciar catálogo (categorias, produtos, variações) e estoque (lotes e movimentações).
@@ -88,6 +110,8 @@ Observações:
 - Estado/dados: `@tanstack/react-query`, `zustand`.
 - Formulários: `react-hook-form`.
 - UI: `tailwindcss` v4 e utilitários (`clsx`, `tailwind-merge`), ícones `lucide-react`.
+  - **IMPORTANTE**: Sempre desenvolver com classes base para mobile primeiro.
+  - Use breakpoints (`sm:`, `md:`, `lg:`, `xl:`) apenas para ajustes em telas maiores.
 - Utilidades de datas: `date-fns`.
 - Segurança/cripto: `bcryptjs` (hash de senha), `jose` (JWT/assinaturas).
 - Prisma loga `error` e `warn` por padrão (`src/lib/prisma.ts`).

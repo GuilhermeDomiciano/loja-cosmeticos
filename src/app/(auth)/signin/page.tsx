@@ -40,8 +40,8 @@ export default function SignInPage() {
 
       toast.success("Login realizado com sucesso!");
       router.push(params.get("next") || "/dashboard");
-    } catch (e: any) {
-      toast.error(e.message);
+    } catch (e: unknown) {
+      toast.error(e instanceof Error ? e.message : "Erro ao fazer login");
     } finally {
       setLoading(false);
     }

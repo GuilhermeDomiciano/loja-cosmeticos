@@ -18,7 +18,7 @@ export class MovimentacaoEstoqueRepository {
     canal?: CanalVenda | null;
     observacoes?: string | null;
   }) {
-    const createData: any = {
+    const createData = {
       ...data,
       loteId: data.loteId ?? undefined,
     };
@@ -38,7 +38,7 @@ export class MovimentacaoEstoqueRepository {
     }
   ) {
     const { loteId, ...rest } = data;
-    const updateData: any = {
+    const updateData = {
       ...rest,
       ...(loteId === undefined ? {} : { loteId }),
     };

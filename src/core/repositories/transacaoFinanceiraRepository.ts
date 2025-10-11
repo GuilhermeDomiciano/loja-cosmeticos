@@ -18,7 +18,7 @@ export class TransacaoFinanceiraRepository {
     movimentacaoId?: string | null;
   }) {
     const { dataVencimento, pagoEm, movimentacaoId, ...rest } = data;
-    const createData: any = {
+    const createData = {
       ...rest,
       dataVencimento: dataVencimento ? new Date(dataVencimento) : undefined,
       pagoEm: pagoEm ? new Date(pagoEm) : undefined,
@@ -40,7 +40,7 @@ export class TransacaoFinanceiraRepository {
     }
   ) {
     const { dataVencimento, pagoEm, movimentacaoId, ...rest } = data;
-    const updateData: any = {
+    const updateData = {
       ...rest,
       dataVencimento:
         dataVencimento === undefined ? undefined : dataVencimento ? new Date(dataVencimento) : null,

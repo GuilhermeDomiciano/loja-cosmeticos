@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
 import {
   categoriaCreateSchema,
   categoriaUpdateSchema,
@@ -22,7 +21,7 @@ export class CategoriaController {
     try {
       const data = await this.service.listar(organizacaoId);
       return NextResponse.json({ data, message: "Listagem de categorias" });
-    } catch (err) {
+    } catch {
       return NextResponse.json(
         { message: "Erro ao listar categorias" },
         { status: 500 }

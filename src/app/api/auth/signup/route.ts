@@ -52,8 +52,8 @@ export async function POST(req: Request) {
     });
     await setAuthCookie(token);
     return res;
-  } catch (e: any) {
-    if (e?.name === "ZodError") {
+  } catch (e: unknown) {
+    if (e instanceof z.ZodError) {
       return NextResponse.json({ message: "Dados inválidos", issues: e.issues }, { status: 400 });
     }
     console.error("SIGNUP_ERROR", e);

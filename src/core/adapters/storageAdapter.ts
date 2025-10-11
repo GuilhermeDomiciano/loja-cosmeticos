@@ -12,8 +12,9 @@ export class StorageAdapter {
       });
 
     if (error) throw new Error(error.message);
+    if (!data?.path) throw new Error('Falha ao fazer upload do arquivo');
 
-    return data?.path!;
+    return data.path;
   }
 
   static async getPublicUrl(bucket: string, path: string) {

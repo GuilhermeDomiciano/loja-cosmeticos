@@ -1,4 +1,4 @@
-export async function apiGet(path: string, params?: Record<string, any>) {
+export async function apiGet(path: string, params?: Record<string, string | number | boolean>) {
   const url = new URL(path, typeof window === "undefined" ? "http://localhost" : window.location.origin);
 
   const isOrgRoute = path.startsWith("/api/organizacoes") || path.startsWith("/api/auth");
@@ -28,7 +28,7 @@ export async function apiJson(path: string, method: "POST" | "PUT" | "DELETE", b
   // acopla organizacaoId no body quando necessário
   const payload =
     !isOrgRoute && body && typeof body === "object" && orgId
-      ? { ...(body as any), organizacaoId: bodyHasOrgId(body) ? (body as any).organizacaoId : orgId }
+      ? { ...(body as Record<string, unknown>), organizacaoId: bodyHasOrgId(body) ? (body as Record<string, unknown>).organizacaoId : orgId }
       : body;
 
   const res = await fetch(url, {
@@ -43,9 +43,9 @@ export async function apiJson(path: string, method: "POST" | "PUT" | "DELETE", b
   return data;
 }
 
-function bodyHasOrgId(b: unknown) {
+function bodyHasOrgId(b: unknown): b is Record<string, unknown> {
   try {
-    return typeof b === "object" && b !== null && "organizacaoId" in (b as any);
+    return typeof b === "object" && b !== null && "organizacaoId" in b;
   } catch {
     return false;
   }

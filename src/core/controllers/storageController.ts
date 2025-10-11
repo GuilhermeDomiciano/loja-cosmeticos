@@ -12,8 +12,9 @@ export class StorageController {
     try {
       const result = await StorageService.salvarArquivo(file, 'product-images', 'produtos');
       return Response.json(result, { status: 201 });
-    } catch (err: any) {
-      return new Response(err.message, { status: 500 });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao fazer upload';
+      return new Response(message, { status: 500 });
     }
   }
 }
