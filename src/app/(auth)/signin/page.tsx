@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -17,7 +17,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter();
   const params = useSearchParams();
   const [loading, setLoading] = useState(false);
@@ -89,5 +89,19 @@ export default function SignInPage() {
         </p>
       </form>
     </main>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-dvh grid place-items-center p-4">
+        <div className="w-full max-w-sm space-y-4 rounded-2xl border p-6 shadow-sm bg-card">
+          <p className="text-center text-muted-foreground">Carregando...</p>
+        </div>
+      </main>
+    }>
+      <SignInForm />
+    </Suspense>
   );
 }

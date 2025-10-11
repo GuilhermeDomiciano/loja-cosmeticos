@@ -19,8 +19,9 @@ export async function middleware(req: NextRequest) {
   try {
     await jwtVerify(token, secret);
     return NextResponse.next();
-  } catch {
+  } catch (error) {
     // Token inválido, redirecionar para login
+    console.error('[Middleware] Token verification failed:', error);
     const url = req.nextUrl.clone();
     url.pathname = "/signin";
     url.searchParams.set("next", pathname);

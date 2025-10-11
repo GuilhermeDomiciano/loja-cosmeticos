@@ -5,7 +5,7 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-ch
 const COOKIE_NAME = "auth_token";
 const MAX_AGE_DAYS = 7;
 
-export interface JwtPayload {
+export interface JwtPayload extends Record<string, unknown> {
   sub: string; // User ID
   email: string;
   nome?: string;
