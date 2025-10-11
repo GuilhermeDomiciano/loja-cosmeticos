@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Package, ShoppingCart, BarChart3, User } from "lucide-react";
+import { Home, Package, ShoppingCart, Boxes, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface NavItem {
@@ -23,14 +23,14 @@ const navItems: NavItem[] = [
     icon: <Package className="h-5 w-5" />,
   },
   {
+    href: "/estoque",
+    label: "Estoque",
+    icon: <Boxes className="h-5 w-5" />,
+  },
+  {
     href: "/venda-rapida",
     label: "Vender",
     icon: <ShoppingCart className="h-5 w-5" />,
-  },
-  {
-    href: "/relatorios",
-    label: "Relatórios",
-    icon: <BarChart3 className="h-5 w-5" />,
   },
   {
     href: "/configuracoes",

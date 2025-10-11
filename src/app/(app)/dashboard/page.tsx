@@ -1,3 +1,6 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { 
   Package, 
@@ -13,13 +16,59 @@ import {
  * Mobile-first: cards empilhados → grid responsivo
  */
 export default function DashboardPage() {
-  // TODO: Buscar dados reais da API
-  const metrics = {
+  const [metrics, setMetrics] = useState({
     produtosTotal: 0,
-    vendasMes: 0,
-    faturamentoMes: 0,
+    variacoesTotal: 0,
+    categoriasTotal: 0,
     estoqueBaixo: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchMetrics();
+  }, []);
+
+  const fetchMetrics = async () => {
+    try {
+      const [produtosRes, variacoesRes, categoriasRes] = await Promise.all([
+        fetch("/api/produtos"),
+        fetch("/api/variacoes"),
+        fetch("/api/categorias"),
+      ]);
+
+      const produtos = await produtosRes.json();
+      const variacoes = await variacoesRes.json();
+      const categorias = await categoriasRes.json();
+
+      const produtosArray = Array.isArray(produtos) ? produtos : [];
+      const variacoesArray = Array.isArray(variacoes) ? variacoes : [];
+      const categoriasArray = Array.isArray(categorias) ? categorias : [];
+
+      // Contar variações com estoque baixo (menos de 10)
+      const estoqueBaixo = variacoesArray.filter(
+        (v: { quantidade: number }) => v.quantidade < 10
+      ).length;
+
+      setMetrics({
+        produtosTotal: produtosArray.length,
+        variacoesTotal: variacoesArray.length,
+        categoriasTotal: categoriasArray.length,
+        estoqueBaixo,
+      });
+    } catch (error) {
+      console.error("Erro ao carregar métricas", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p className="text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -45,29 +94,29 @@ export default function DashboardPage() {
           </p>
         </Card>
 
-        {/* Vendas do mês */}
+        {/* Variações */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-muted-foreground">Vendas</p>
+            <p className="text-sm text-muted-foreground">Variações</p>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </div>
-          <p className="text-3xl font-bold">{metrics.vendasMes}</p>
+          <p className="text-3xl font-bold">{metrics.variacoesTotal}</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Este mês
+            Total cadastradas
           </p>
         </Card>
 
-        {/* Faturamento */}
+        {/* Categorias */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-muted-foreground">Faturamento</p>
+            <p className="text-sm text-muted-foreground">Categorias</p>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </div>
           <p className="text-3xl font-bold">
-            R$ {metrics.faturamentoMes.toLocaleString('pt-BR')}
+            {metrics.categoriasTotal}
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Este mês
+            Total cadastradas
           </p>
         </Card>
 

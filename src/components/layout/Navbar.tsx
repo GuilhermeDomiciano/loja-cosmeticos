@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { LogOut, Home, Package, FolderOpen } from "lucide-react";
+import { LogOut, Home, Package, FolderOpen, Box } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -18,6 +18,7 @@ export function Navbar() {
     { href: "/dashboard", label: "Dashboard", icon: Home },
     { href: "/categorias", label: "Categorias", icon: FolderOpen },
     { href: "/produtos", label: "Produtos", icon: Package },
+    { href: "/variacoes", label: "Variações", icon: Box },
   ];
 
   return (

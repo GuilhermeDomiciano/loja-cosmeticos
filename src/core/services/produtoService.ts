@@ -9,6 +9,10 @@ export class ProdutoService {
     return this.repo.listarPorOrganizacao(organizacaoId);
   }
 
+  async buscarPorId(id: string) {
+    return this.repo.buscarPorId(id);
+  }
+
   async criar(input: ProdutoCreateInput) {
     try {
       return await this.repo.criar(input);

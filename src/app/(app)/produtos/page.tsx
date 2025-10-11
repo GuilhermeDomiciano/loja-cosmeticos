@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil, Trash2, Package } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { Plus, Pencil, Trash2, Package, Eye } from "lucide-react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -42,7 +42,6 @@ interface Categoria {
 }
 
 export default function ProdutosPage() {
-  const { organization } = useAuth();
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +57,8 @@ export default function ProdutosPage() {
     sku: "",
     categoriaId: "",
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchProdutos();
@@ -65,12 +66,11 @@ export default function ProdutosPage() {
   }, []);
 
   const fetchProdutos = async () => {
-    if (!organization?.id) return;
     try {
-      const res = await fetch(`/api/produtos?organizacaoId=${organization.id}`);
+      const res = await fetch("/api/produtos");
       if (!res.ok) throw new Error("Erro ao carregar produtos");
-      const result = await res.json();
-      setProdutos(result.data || []);
+      const data = await res.json();
+      setProdutos(Array.isArray(data) ? data : []);
     } catch (error) {
       toast.error("Erro ao carregar produtos");
     } finally {
@@ -79,43 +79,51 @@ export default function ProdutosPage() {
   };
 
   const fetchCategorias = async () => {
-    if (!organization?.id) return;
     try {
-      const res = await fetch(`/api/categorias?organizacaoId=${organization.id}`);
+      const res = await fetch("/api/categorias");
       if (!res.ok) throw new Error("Erro ao carregar categorias");
-      const result = await res.json();
-      setCategorias(result.data || []);
+      const data = await res.json();
+      setCategorias(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Erro ao carregar categorias");
     }
   };
 
   const handleSave = async () => {
-    if (!organization?.id) {
-      toast.error("Organização não encontrada");
-      return;
-    }
     try {
+      let imagemUrl = editingProduto?.imagemUrl;
+
+      // Upload de imagem se houver
+      if (imageFile) {
+        setUploading(true);
+        const formDataImg = new FormData();
+        formDataImg.append("file", imageFile);
+
+        const uploadRes = await fetch("/api/storage", {
+          method: "POST",
+          body: formDataImg,
+        });
+
+        if (uploadRes.ok) {
+          const uploadData = await uploadRes.json();
+          imagemUrl = uploadData.url;
+        }
+        setUploading(false);
+      }
+
       const url = editingProduto
         ? `/api/produtos/${editingProduto.id}`
         : "/api/produtos";
       const method = editingProduto ? "PUT" : "POST";
 
-      const payload = editingProduto
-        ? {
-            ...formData,
-            categoriaId: formData.categoriaId || null,
-          }
-        : {
-            ...formData,
-            categoriaId: formData.categoriaId || null,
-            organizacaoId: organization.id,
-          };
-
       const res = await fetch(url, {
         method,
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          ...formData,
+          categoriaId: formData.categoriaId || null,
+          imagemUrl,
+        }),
       });
 
       if (!res.ok) throw new Error("Erro ao salvar produto");
@@ -127,6 +135,7 @@ export default function ProdutosPage() {
       );
       setDialogOpen(false);
       setFormData({ nome: "", descricao: "", sku: "", categoriaId: "" });
+      setImageFile(null);
       setEditingProduto(null);
       fetchProdutos();
     } catch (error) {
@@ -166,6 +175,7 @@ export default function ProdutosPage() {
   const openCreateDialog = () => {
     setEditingProduto(null);
     setFormData({ nome: "", descricao: "", sku: "", categoriaId: "" });
+    setImageFile(null);
     setDialogOpen(true);
   };
 
@@ -235,6 +245,15 @@ export default function ProdutosPage() {
         ) : (
           filteredProdutos.map((produto) => (
             <Card key={produto.id} className="p-4 hover:shadow-lg transition-shadow">
+              {produto.imagemUrl && (
+                <div className="mb-3 aspect-video bg-muted rounded-md overflow-hidden">
+                  <img
+                    src={produto.imagemUrl}
+                    alt={produto.nome}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <div className="flex items-start justify-between mb-3">
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">{produto.nome}</h3>
@@ -260,14 +279,22 @@ export default function ProdutosPage() {
               )}
 
               <div className="flex gap-2">
+                <Link href={`/produtos/${produto.id}`} className="flex-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    <Eye className="mr-2 h-4 w-4" />
+                    Ver
+                  </Button>
+                </Link>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1"
                   onClick={() => openEditDialog(produto)}
                 >
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Editar
+                  <Pencil className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="outline"
@@ -294,6 +321,23 @@ export default function ProdutosPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="imagem">Imagem do Produto</Label>
+              <Input
+                id="imagem"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) setImageFile(file);
+                }}
+              />
+              {imageFile && (
+                <p className="text-xs text-muted-foreground">
+                  Arquivo selecionado: {imageFile.name}
+                </p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="nome">Nome *</Label>
               <Input
@@ -352,8 +396,8 @@ export default function ProdutosPage() {
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSave} disabled={!formData.nome}>
-              Salvar
+            <Button onClick={handleSave} disabled={!formData.nome || uploading}>
+              {uploading ? "Enviando imagem..." : "Salvar"}
             </Button>
           </DialogFooter>
         </DialogContent>

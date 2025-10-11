@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import {
   Home,
   Package,
@@ -12,6 +13,11 @@ import {
   FolderKanban,
   Settings,
   LogOut,
+  ChevronDown,
+  ChevronRight,
+  PackageSearch,
+  Package2,
+  Calendar,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,12 +27,23 @@ interface NavItem {
   href: string;
   label: string;
   icon: React.ReactNode;
+  children?: NavItem[];
 }
 
 const navItems: NavItem[] = [
   { href: "/dashboard", label: "Dashboard", icon: <Home className="h-5 w-5" /> },
   { href: "/produtos", label: "Produtos", icon: <Package className="h-5 w-5" /> },
-  { href: "/estoque", label: "Estoque", icon: <Boxes className="h-5 w-5" /> },
+  { 
+    href: "/estoque", 
+    label: "Estoque", 
+    icon: <Boxes className="h-5 w-5" />,
+    children: [
+      { href: "/estoque", label: "Visão Geral", icon: <PackageSearch className="h-4 w-4" /> },
+      { href: "/variacoes", label: "Variações", icon: <Package2 className="h-4 w-4" /> },
+      { href: "/estoque-itens", label: "Gerenciar Estoque", icon: <Boxes className="h-4 w-4" /> },
+      { href: "/lotes", label: "Lotes", icon: <Calendar className="h-4 w-4" /> },
+    ]
+  },
   { href: "/kits", label: "Kits", icon: <FolderKanban className="h-5 w-5" /> },
   { href: "/venda-rapida", label: "Venda Rápida", icon: <ShoppingCart className="h-5 w-5" /> },
   { href: "/movimentacoes", label: "Movimentações", icon: <BarChart3 className="h-5 w-5" /> },
@@ -41,6 +58,11 @@ const navItems: NavItem[] = [
  */
 export function Sidebar() {
   const pathname = usePathname();
+  const [openMenus, setOpenMenus] = useState<Record<string, boolean>>({});
+
+  const toggleMenu = (href: string) => {
+    setOpenMenus(prev => ({ ...prev, [href]: !prev[href] }));
+  };
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -55,23 +77,74 @@ export function Sidebar() {
         <nav className="space-y-1 px-3">
           {navItems.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+            const hasChildren = item.children && item.children.length > 0;
+            const isOpen = openMenus[item.href];
             
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2",
-                  "transition-all duration-200",
-                  "hover:bg-accent",
-                  isActive
-                    ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:text-foreground"
+              <div key={item.href}>
+                {hasChildren ? (
+                  <>
+                    <button
+                      onClick={() => toggleMenu(item.href)}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 w-full",
+                        "transition-all duration-200",
+                        "hover:bg-accent",
+                        isActive
+                          ? "bg-accent text-accent-foreground font-medium"
+                          : "text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {item.icon}
+                      <span className="flex-1 text-left">{item.label}</span>
+                      {isOpen ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </button>
+                    {isOpen && (
+                      <div className="ml-6 mt-1 space-y-1">
+                        {item.children?.map((child) => {
+                          const isChildActive = pathname === child.href;
+                          return (
+                            <Link
+                              key={child.href}
+                              href={child.href}
+                              className={cn(
+                                "flex items-center gap-2 rounded-lg px-3 py-2",
+                                "transition-all duration-200",
+                                "hover:bg-accent",
+                                isChildActive
+                                  ? "bg-accent text-accent-foreground font-medium"
+                                  : "text-muted-foreground hover:text-foreground"
+                              )}
+                            >
+                              {child.icon}
+                              <span className="text-sm">{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg px-3 py-2",
+                      "transition-all duration-200",
+                      "hover:bg-accent",
+                      isActive
+                        ? "bg-accent text-accent-foreground font-medium"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {item.icon}
+                    <span>{item.label}</span>
+                  </Link>
                 )}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
+              </div>
             );
           })}
         </nav>

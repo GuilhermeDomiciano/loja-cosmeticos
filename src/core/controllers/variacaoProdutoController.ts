@@ -7,19 +7,24 @@ import {
   VariacaoProdutoService,
   variacaoProdutoService,
 } from "../services/variacaoProdutoService";
+import { requireAuth } from "@/lib/auth";
 
 export class VariacaoProdutoController {
   constructor(private readonly service: VariacaoProdutoService) {}
 
-  async listar(req: Request) {
-    const { searchParams } = new URL(req.url);
-    const organizacaoId = searchParams.get("organizacaoId");
-    if (!organizacaoId) return NextResponse.json({ message: "organizacaoId é obrigatório" }, { status: 400 });
+  async listar(_req: Request) {
     try {
-      const data = await this.service.listar(organizacaoId);
-      return NextResponse.json({ data, message: "Listagem de variações" });
-    } catch {
-      return NextResponse.json({ message: "Erro ao listar variações" }, { status: 500 });
+      const user = await requireAuth();
+      if (!user.organizacaoId) {
+        return NextResponse.json({ message: "Usuário sem organização" }, { status: 400 });
+      }
+      const data = await this.service.listar(user.organizacaoId);
+      return NextResponse.json(data);
+    } catch (error) {
+      return NextResponse.json(
+        { message: error instanceof Error ? error.message : "Erro ao listar variações" },
+        { status: 500 }
+      );
     }
   }
 

@@ -1,6 +1,11 @@
 import { produtoController } from "@/core/controllers/produtoController";
 import type { NextRequest } from "next/server";
 
+export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
+  const { id } = await ctx.params;
+  return produtoController.buscarPorId(req, { id });
+}
+
 export async function PUT(req: NextRequest, ctx: { params: Promise<{ id: string }> }) {
   const { id } = await ctx.params;
   return produtoController.atualizar(req, { id });
