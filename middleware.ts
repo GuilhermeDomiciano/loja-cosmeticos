@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { hashSecret } from "@/lib/auth";
 
-const secret = hashSecret(process.env.JWT_SECRET ?? "development-secret-change-me-please-set-env");
+const secret = new TextEncoder().encode(
+  process.env.JWT_SECRET ?? "development-secret-change-me-please-set-env"
+);
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
