@@ -1,9 +1,27 @@
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
+import { createHash } from "crypto";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET || "dev-secret-change-me");
+const rawSecret = process.env.JWT_SECRET ?? "development-secret-change-me-please-set-env";
+
+export function hashSecret(input: string) {
+  return input.length >= 32
+    ? new TextEncoder().encode(input)
+    : createHash("sha256").update(input).digest();
+}
+
+const secret = hashSecret(rawSecret);
 const COOKIE_NAME = "auth_token";
 const MAX_AGE_DAYS = 7;
+
+const cookieConfig = {
+  name: COOKIE_NAME,
+  httpOnly: true,
+  path: "/",
+  sameSite: "lax" as const,
+  secure: process.env.NODE_ENV === "production",
+  maxAge: 60 * 60 * 24 * MAX_AGE_DAYS,
+};
 
 export interface JwtPayload extends Record<string, unknown> {
   sub: string; // User ID
@@ -32,27 +50,14 @@ export async function verifyJwt(token: string): Promise<JwtPayload | null> {
   }
 }
 
-export async function setAuthCookie(token: string) {
-  const cookieStore = await cookies();
-  cookieStore.set({
-    name: COOKIE_NAME,
-    value: token,
-    httpOnly: true,
-    path: "/",
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 60 * 24 * MAX_AGE_DAYS,
-  });
+export function setAuthCookie(token: string) {
+  const cookieStore = cookies();
+  cookieStore.set({ ...cookieConfig, value: token });
 }
 
-export async function clearAuthCookie() {
-  const cookieStore = await cookies();
-  cookieStore.set({
-    name: COOKIE_NAME,
-    value: "",
-    maxAge: 0,
-    path: "/",
-  });
+export function clearAuthCookie() {
+  const cookieStore = cookies();
+  cookieStore.set({ ...cookieConfig, value: "", maxAge: 0 });
 }
 
 export async function getAuthToken(): Promise<string | null> {

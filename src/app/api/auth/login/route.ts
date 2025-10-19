@@ -35,6 +35,8 @@ export async function POST(req: Request) {
       organizacaoId: user.organizacaoId ?? undefined,
     });
 
+    setAuthCookie(token);
+
     const res = NextResponse.json({
       user: {
         id: user.id,
@@ -48,7 +50,6 @@ export async function POST(req: Request) {
       message: "Login OK",
     });
 
-    await setAuthCookie(token); 
     return res;
   } catch (e: unknown) {
     if (e instanceof z.ZodError) {
