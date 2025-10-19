@@ -45,7 +45,7 @@ const navItems: NavItem[] = [
     ]
   },
   { href: "/kits", label: "Kits", icon: <FolderKanban className="h-5 w-5" /> },
-  { href: "/venda-rapida", label: "Venda Rápida", icon: <ShoppingCart className="h-5 w-5" /> },
+  { href: "/registrar-venda", label: "Registrar Venda", icon: <ShoppingCart className="h-5 w-5" /> },
   { href: "/movimentacoes", label: "Movimentações", icon: <BarChart3 className="h-5 w-5" /> },
   { href: "/financeiro", label: "Financeiro", icon: <DollarSign className="h-5 w-5" /> },
   { href: "/relatorios", label: "Relatórios", icon: <BarChart3 className="h-5 w-5" /> },

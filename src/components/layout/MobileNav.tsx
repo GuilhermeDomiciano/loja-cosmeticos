@@ -28,7 +28,7 @@ const navItems: NavItem[] = [
     icon: <Boxes className="h-5 w-5" />,
   },
   {
-    href: "/venda-rapida",
+    href: "/registrar-venda",
     label: "Vender",
     icon: <ShoppingCart className="h-5 w-5" />,
   },

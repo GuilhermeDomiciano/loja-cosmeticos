@@ -51,8 +51,8 @@ export default function NotFound() {
             <Link href="/produtos">
               <Button variant="link" size="sm">Produtos</Button>
             </Link>
-            <Link href="/venda-rapida">
-              <Button variant="link" size="sm">Venda Rápida</Button>
+            <Link href="/registrar-venda">
+              <Button variant="link" size="sm">Registrar Venda</Button>
             </Link>
             <Link href="/estoque">
               <Button variant="link" size="sm">Estoque</Button>
