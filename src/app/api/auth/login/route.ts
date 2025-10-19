@@ -23,6 +23,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ message: "Credenciais inválidas." }, { status: 401 });
     }
 
+    if (user.papel && user.papel.toLowerCase() === "blocked") {
+      return NextResponse.json({ message: "Usuário bloqueado" }, { status: 403 });
+    }
+
     const ok = await compare(password, user.senha ?? "");
     if (!ok) {
       return NextResponse.json({ message: "Credenciais inválidas." }, { status: 401 });

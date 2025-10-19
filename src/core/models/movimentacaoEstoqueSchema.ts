@@ -2,7 +2,7 @@ import { z } from "zod";
 import { canalVendaEnum, motivoMovimentacaoEnum, tipoMovimentacaoEnum, zDecimal, zUuid } from "./common";
 
 export const movimentacaoEstoqueCreateSchema = z.object({
-  organizacaoId: zUuid,
+  organizacaoId: zUuid.optional(),
   variacaoId: zUuid,
   loteId: zUuid.optional().nullable(),
   vendedorId: zUuid.optional().nullable(),

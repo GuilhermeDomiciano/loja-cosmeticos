@@ -36,15 +36,39 @@ export default function RegistrarVendaPage() {
   const [metodoPagamento, setMetodoPagamento] = useState("");
   const [canalVenda, setCanalVenda] = useState("BALCAO");
   const [vendedorId, setVendedorId] = useState<string>("");
+  const [vendedores, setVendedores] = useState<Array<{ id: string; nome: string }>>([]);
+  const [saldos, setSaldos] = useState<Record<string, number>>({});
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/variacoes");
-        const data = await res.json();
-        setVariacoes(Array.isArray(data) ? data : []);
+        const [meRes, varRes, vendRes] = await Promise.all([
+          fetch("/api/auth/me"),
+          fetch("/api/variacoes"),
+          fetch("/api/usuarios"),
+        ]);
+        if (meRes.ok) {
+          const me = await meRes.json();
+          if (me?.user?.sub) setVendedorId(me.user.sub);
+        }
+        const data = await varRes.json();
+        const list = Array.isArray(data) ? data : [];
+        setVariacoes(list);
+        // carregar vendedores (papel vendedor ou sem papel)
+        if (vendRes.ok) {
+          const payload = await vendRes.json();
+          const arr = Array.isArray(payload) ? payload : payload?.data || [];
+          const mapped = arr.map((u: any) => ({ id: u.id, nome: u.nome })) as Array<{ id: string; nome: string }>;
+          setVendedores(mapped);
+        }
+        // saldos
+        if (list.length > 0) {
+          const salRes = await fetch("/api/estoque/saldos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ variacaoIds: list.map((v: any) => v.id) }) });
+          const payload = await salRes.json();
+          if (salRes.ok) setSaldos(payload.saldos || {});
+        }
       } catch {
-        toast.error("Erro ao carregar variações");
+        toast.error("Erro ao carregar dados");
       } finally {
         setLoading(false);
       }
@@ -85,6 +109,20 @@ export default function RegistrarVendaPage() {
     if (carrinho.length === 0) return toast.error("Carrinho vazio");
 
     try {
+      if (!vendedorId) {
+        toast.error("Selecione o vendedor");
+        return;
+      }
+      // valida saldo antes
+      const ids = carrinho.map((i) => i.id);
+      const saldosRes = await fetch("/api/estoque/saldos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ variacaoIds: ids }) });
+      const saldosPayload = await saldosRes.json();
+      if (!saldosRes.ok) throw new Error(saldosPayload?.message || "Falha ao validar estoque");
+      const saldos: Record<string, number> = saldosPayload.saldos || {};
+      const insuficientes = carrinho.filter((i) => (saldos[i.id] ?? 0) < i.quantidade);
+      if (insuficientes.length > 0) {
+        return toast.error(`Estoque insuficiente para: ${insuficientes.map((i) => i.nome).join(", ")}`);
+      }
       // Registrar saídas de estoque por variação
       const movs = carrinho.map((i) => ({
         tipo: "SAIDA",
@@ -156,8 +194,9 @@ export default function RegistrarVendaPage() {
                     <p className="text-sm text-muted-foreground truncate">{v.nome}</p>
                   </div>
                   <div className="text-right">
+                    <p className="text-sm text-muted-foreground">Estoque: {saldos[v.id] ?? 0}</p>
                     <p className="font-bold">R$ {v.preco.toFixed(2)}</p>
-                    <Button size="sm" className="mt-1" onClick={() => adicionar(v)}>
+                    <Button size="sm" className="mt-1" onClick={() => adicionar(v)} disabled={(saldos[v.id] ?? 0) <= 0}>
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -249,6 +288,17 @@ export default function RegistrarVendaPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-1">
+              <Label>Vendedor</Label>
+              <Select value={vendedorId} onValueChange={setVendedorId}>
+                <SelectTrigger><SelectValue placeholder="Selecione o vendedor" /></SelectTrigger>
+                <SelectContent>
+                  {vendedores.map((v) => (
+                    <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setFinalizarOpen(false)}>Cancelar</Button>
@@ -259,4 +309,3 @@ export default function RegistrarVendaPage() {
     </div>
   );
 }
-
