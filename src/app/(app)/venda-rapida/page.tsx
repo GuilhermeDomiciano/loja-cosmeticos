@@ -49,9 +49,23 @@ export default function VendaRapidaPage() {
   const [finalizando, setFinalizando] = useState(false);
   const [metodoPagamento, setMetodoPagamento] = useState("");
   const [canalVenda, setCanalVenda] = useState("LOJA_FISICA");
+  const [vendedores, setVendedores] = useState<Array<{ id: string; nome: string }>>([]);
+  const [vendedorId, setVendedorId] = useState<string>("");
 
   useEffect(() => {
     fetchProdutos();
+    // carregar vendedores (usuarios com papel 'vendedor')
+    (async () => {
+      try {
+        const res = await fetch("/api/usuarios");
+        const payload = await res.json();
+        const list = Array.isArray(payload) ? payload : payload?.data || [];
+        const mapped = list
+          .filter((u: any) => !u.papel || u.papel === "vendedor" || u.papel === "seller")
+          .map((u: any) => ({ id: u.id, nome: u.nome }));
+        setVendedores(mapped);
+      } catch {}
+    })();
   }, []);
 
   const fetchProdutos = async () => {
@@ -176,6 +190,7 @@ export default function VendaRapidaPage() {
               precoUnitario: item.preco,
               variacaoProdutoId: item.id,
               canalVenda,
+              vendedorId: vendedorId || undefined,
             },
           ];
         } else {
@@ -187,6 +202,7 @@ export default function VendaRapidaPage() {
             precoUnitario: item.preco / (item.itemsDoKit?.length || 1), // Dividir preço proporcionalmente
             variacaoProdutoId: kitItem.variacaoId,
             canalVenda,
+            vendedorId: vendedorId || undefined,
           }));
         }
       });
@@ -225,6 +241,7 @@ export default function VendaRapidaPage() {
       setCarrinho([]);
       setFinalizarDialogOpen(false);
       setMetodoPagamento("");
+      setVendedorId("");
     } catch (error) {
       toast.error("Erro ao finalizar venda");
     } finally {
@@ -461,6 +478,20 @@ export default function VendaRapidaPage() {
                   <SelectItem value="CARTAO_CREDITO">Cartão de Crédito</SelectItem>
                   <SelectItem value="CARTAO_DEBITO">Cartão de Débito</SelectItem>
                   <SelectItem value="OUTRO">Outro</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Vendedor</Label>
+              <Select value={vendedorId} onValueChange={setVendedorId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o vendedor (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vendedores.map((v) => (
+                    <SelectItem value={v.id} key={v.id}>{v.nome}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

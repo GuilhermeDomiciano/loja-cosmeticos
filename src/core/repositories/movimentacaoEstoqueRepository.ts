@@ -3,13 +3,20 @@ import type { CanalVenda, MotivoMovimentacao, TipoMovimentacao } from "@prisma/c
 
 export class MovimentacaoEstoqueRepository {
   async listarPorOrganizacao(organizacaoId: string) {
-    return prisma.movimentacaoEstoque.findMany({ where: { organizacaoId }, orderBy: { criadoEm: "desc" } });
+    return prisma.movimentacaoEstoque.findMany({
+      where: { organizacaoId },
+      orderBy: { criadoEm: "desc" },
+      include: {
+        vendedor: { select: { id: true, nome: true, email: true } },
+      },
+    });
   }
   async buscarPorId(id: string) { return prisma.movimentacaoEstoque.findUnique({ where: { id } }); }
   async criar(data: {
     organizacaoId: string;
     variacaoId: string;
     loteId?: string | null;
+    vendedorId?: string | null;
     tipo: TipoMovimentacao;
     motivo: MotivoMovimentacao;
     quantidade: string;
@@ -21,6 +28,7 @@ export class MovimentacaoEstoqueRepository {
     const createData = {
       ...data,
       loteId: data.loteId ?? undefined,
+      vendedorId: data.vendedorId ?? undefined,
     };
     return prisma.movimentacaoEstoque.create({ data: createData });
   }
@@ -28,6 +36,7 @@ export class MovimentacaoEstoqueRepository {
     id: string,
     data: {
       loteId?: string | null;
+      vendedorId?: string | null;
       tipo?: TipoMovimentacao;
       motivo?: MotivoMovimentacao;
       quantidade?: string;
@@ -37,10 +46,11 @@ export class MovimentacaoEstoqueRepository {
       observacoes?: string | null;
     }
   ) {
-    const { loteId, ...rest } = data;
+    const { loteId, vendedorId, ...rest } = data;
     const updateData = {
       ...rest,
       ...(loteId === undefined ? {} : { loteId }),
+      ...(vendedorId === undefined ? {} : { vendedorId }),
     };
     return prisma.movimentacaoEstoque.update({ where: { id }, data: updateData });
   }

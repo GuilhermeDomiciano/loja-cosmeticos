@@ -93,6 +93,9 @@ model Usuario {
 
   organizacao Organizacao @relation(fields: [organizacaoId], references: [id])
 
+  // Relacionamento com movimentações como vendedor (opcional)
+  vendas       MovimentacaoEstoque[] @relation("MovimentacaoVendedor")
+
   @@index([organizacaoId])
 }
 
@@ -182,6 +185,7 @@ model MovimentacaoEstoque {
   organizacaoId String
   variacaoId    String
   loteId        String?
+  vendedorId    String?
   tipo          TipoMovimentacao
   motivo        MotivoMovimentacao
   quantidade    Decimal            @db.Decimal(12, 3)
@@ -194,11 +198,13 @@ model MovimentacaoEstoque {
   organizacao Organizacao           @relation(fields: [organizacaoId], references: [id])
   variacao    VariacaoProduto       @relation(fields: [variacaoId], references: [id])
   lote        LoteEstoque?          @relation(fields: [loteId], references: [id])
+  vendedor    Usuario?              @relation("MovimentacaoVendedor", fields: [vendedorId], references: [id])
   transacoes  TransacaoFinanceira[]
 
   @@index([organizacaoId])
   @@index([variacaoId])
   @@index([loteId])
+  @@index([vendedorId])
   @@index([criadoEm])
 }
 

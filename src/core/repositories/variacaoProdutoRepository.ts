@@ -6,6 +6,9 @@ export class VariacaoProdutoRepository {
     return prisma.variacaoProduto.findMany({
       where: { organizacaoId },
       orderBy: { criadoEm: "desc" },
+      include: {
+        produto: { select: { id: true, nome: true } },
+      },
     });
   }
   async buscarPorId(id: string) {

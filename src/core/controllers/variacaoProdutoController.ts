@@ -19,7 +19,14 @@ export class VariacaoProdutoController {
         return NextResponse.json({ message: "Usuário sem organização" }, { status: 400 });
       }
       const data = await this.service.listar(user.organizacaoId);
-      return NextResponse.json(data);
+      const formatted = data.map((v: any) => ({
+        ...v,
+        preco: v?.preco != null ? Number(v.preco.toString()) : 0,
+        custo: v?.custo != null ? Number(v.custo.toString()) : null,
+        estoqueMinimo: v?.estoqueMinimo != null ? Number(v.estoqueMinimo.toString()) : null,
+        quantidade: v?.quantidade != null ? Number(v.quantidade) : 0,
+      }));
+      return NextResponse.json(formatted);
     } catch (error) {
       return NextResponse.json(
         { message: error instanceof Error ? error.message : "Erro ao listar variações" },

@@ -5,6 +5,7 @@ export const movimentacaoEstoqueCreateSchema = z.object({
   organizacaoId: zUuid,
   variacaoId: zUuid,
   loteId: zUuid.optional().nullable(),
+  vendedorId: zUuid.optional().nullable(),
   tipo: tipoMovimentacaoEnum,
   motivo: motivoMovimentacaoEnum,
   quantidade: zDecimal,
@@ -16,6 +17,7 @@ export const movimentacaoEstoqueCreateSchema = z.object({
 
 export const movimentacaoEstoqueUpdateSchema = z.object({
   loteId: zUuid.optional().nullable(),
+  vendedorId: zUuid.optional().nullable(),
   tipo: tipoMovimentacaoEnum.optional(),
   motivo: motivoMovimentacaoEnum.optional(),
   quantidade: zDecimal.optional(),
@@ -27,4 +29,3 @@ export const movimentacaoEstoqueUpdateSchema = z.object({
 
 export type MovimentacaoEstoqueCreateInput = z.infer<typeof movimentacaoEstoqueCreateSchema>;
 export type MovimentacaoEstoqueUpdateInput = z.infer<typeof movimentacaoEstoqueUpdateSchema>;
-

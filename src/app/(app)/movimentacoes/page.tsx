@@ -18,6 +18,7 @@ interface Movimentacao {
   precoUnitario?: number | null;
   canalVenda?: string | null;
   criadoEm: string;
+  vendedor?: { id: string; nome: string } | null;
   variacaoProduto: {
     nome: string;
     produto: { nome: string };
@@ -197,7 +198,12 @@ export default function MovimentacoesPage() {
                           {mov.canalVenda}
                         </Badge>
                       )}
-                    </div>
+                      {mov.vendedor?.nome && (
+                        <Badge variant="outline" className="text-xs">
+                          {mov.vendedor.nome}
+                        </Badge>
+                      )}
+                  </div>
                     <p className="font-medium">{mov.variacaoProduto.produto.nome}</p>
                     <p className="text-sm text-muted-foreground">
                       {mov.variacaoProduto.nome}

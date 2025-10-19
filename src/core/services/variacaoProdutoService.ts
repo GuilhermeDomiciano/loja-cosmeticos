@@ -7,6 +7,7 @@ import {
   VariacaoProdutoRepository,
   variacaoProdutoRepository,
 } from "../repositories/variacaoProdutoRepository";
+import { requireAuth } from "@/lib/auth";
 
 export class VariacaoProdutoService {
   constructor(private readonly repo: VariacaoProdutoRepository) {}
@@ -17,8 +18,15 @@ export class VariacaoProdutoService {
 
   async criar(input: VariacaoProdutoCreateInput) {
     try {
+      let organizacaoId = (input as any).organizacaoId as string | undefined;
+      if (!organizacaoId) {
+        const user = await requireAuth();
+        if (!user.organizacaoId) throw new Error("Usuário sem organização");
+        organizacaoId = user.organizacaoId;
+      }
       return await this.repo.criar({
         ...input,
+        organizacaoId,
         unidade: input.unidade,
       });
     } catch (err: unknown) {
@@ -51,4 +59,3 @@ export class VariacaoProdutoService {
 }
 
 export const variacaoProdutoService = new VariacaoProdutoService(variacaoProdutoRepository);
-

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { zDecimal, zUuid, unidadeEnum } from "./common";
 
 export const variacaoProdutoCreateSchema = z.object({
-  organizacaoId: zUuid,
+  organizacaoId: zUuid.optional(),
   produtoId: zUuid,
   nome: z.string().trim().optional(),
   sku: z.string().optional(),
@@ -25,4 +25,3 @@ export const variacaoProdutoUpdateSchema = z.object({
 
 export type VariacaoProdutoCreateInput = z.infer<typeof variacaoProdutoCreateSchema>;
 export type VariacaoProdutoUpdateInput = z.infer<typeof variacaoProdutoUpdateSchema>;
-
