@@ -19,13 +19,20 @@ export class VariacaoProdutoController {
         return NextResponse.json({ message: "Usuário sem organização" }, { status: 400 });
       }
       const data = await this.service.listar(user.organizacaoId);
-      const formatted = data.map((v: any) => ({
-        ...v,
-        preco: v?.preco != null ? Number(v.preco.toString()) : 0,
-        custo: v?.custo != null ? Number(v.custo.toString()) : null,
-        estoqueMinimo: v?.estoqueMinimo != null ? Number(v.estoqueMinimo.toString()) : null,
-        quantidade: v?.quantidade != null ? Number(v.quantidade) : 0,
-      }));
+      const toNum = (val: unknown, fallback: number | null) => {
+        if (val == null) return fallback;
+        try { return Number((val as { toString: () => string }).toString()); } catch { return fallback; }
+      };
+      const formatted = data.map((v) => {
+        const r = v as Record<string, unknown>;
+        return {
+          ...v,
+          preco: toNum(r.preco, 0) ?? 0,
+          custo: toNum(r.custo, null),
+          estoqueMinimo: toNum(r.estoqueMinimo, null),
+          quantidade: typeof r.quantidade === "number" ? (r.quantidade as number) : toNum(r.quantidade, 0) ?? 0,
+        };
+      });
       return NextResponse.json(formatted);
     } catch (error) {
       return NextResponse.json(

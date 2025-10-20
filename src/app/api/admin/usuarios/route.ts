@@ -72,7 +72,7 @@ export async function PUT(req: Request) {
     requireAdmin();
     const body = await req.json();
     const { id, bloqueado, nome, email, senha, papel } = updateSchema.parse(body);
-    const data: any = {};
+    const data: { nome?: string; email?: string; senha?: string; papel?: string } = {};
     if (nome !== undefined) data.nome = nome;
     if (email !== undefined) data.email = email;
     if (senha !== undefined) data.senha = await hash(senha, 10);

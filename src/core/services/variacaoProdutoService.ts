@@ -18,7 +18,7 @@ export class VariacaoProdutoService {
 
   async criar(input: VariacaoProdutoCreateInput) {
     try {
-      let organizacaoId = (input as any).organizacaoId as string | undefined;
+      let organizacaoId = input.organizacaoId as string | undefined;
       if (!organizacaoId) {
         const user = await requireAuth();
         if (!user.organizacaoId) throw new Error("Usuário sem organização");

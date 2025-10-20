@@ -12,7 +12,8 @@ export class MovimentacaoEstoqueService {
     const organizacaoId = user.organizacaoId;
     if (!organizacaoId) throw new Error("Usuário sem organização");
 
-    const variacaoId = (input as any).variacaoId ?? (input as any).variacaoProdutoId;
+    const ids = input as { variacaoId?: string; variacaoProdutoId?: string };
+    const variacaoId = ids.variacaoId ?? ids.variacaoProdutoId;
     if (!variacaoId) throw new Error("variacaoId é obrigatório");
 
     if (input.tipo === "SAIDA") {
@@ -20,7 +21,7 @@ export class MovimentacaoEstoqueService {
       if (!(restante > 0)) throw new Error("Quantidade inválida");
 
       const lotes = await prisma.loteEstoque.findMany({
-        where: { organizacaoId, variacaoId, quantidade: { gt: 0 as any } },
+        where: { organizacaoId, variacaoId, quantidade: { gt: "0" } },
         orderBy: [
           { venceEm: "asc" },
           { criadoEm: "asc" },
@@ -31,7 +32,8 @@ export class MovimentacaoEstoqueService {
         throw new Error("Estoque insuficiente");
       }
 
-      const created: any[] = [];
+      type CreatedMov = Awaited<ReturnType<MovimentacaoEstoqueRepository["criar"]>>;
+      const created: CreatedMov[] = [];
       for (const lote of lotes) {
         if (restante <= 0) break;
         const disponivel = parseFloat(lote.quantidade as unknown as string);
@@ -44,14 +46,14 @@ export class MovimentacaoEstoqueService {
           organizacaoId,
           variacaoId,
           loteId: lote.id,
-          vendedorId: (input as any).vendedorId ?? null,
+          vendedorId: input.vendedorId ?? null,
           tipo: input.tipo,
           motivo: input.motivo,
           quantidade: usar.toString(),
-          precoUnitario: (input as any).precoUnitario ?? null,
-          total: (input as any).total ?? null,
-          canal: (input as any).canal ?? null,
-          observacoes: (input as any).observacoes ?? null,
+          precoUnitario: input.precoUnitario ?? null,
+          total: input.total ?? null,
+          canal: input.canal ?? null,
+          observacoes: input.observacoes ?? null,
         });
         created.push(mov);
         restante -= usar;
@@ -63,11 +65,11 @@ export class MovimentacaoEstoqueService {
     if (input.tipo === "ENTRADA") {
       const qtd = parseFloat((input.quantidade as unknown as string) ?? "0");
       if (!(qtd > 0)) throw new Error("Quantidade inválida");
-      let loteId = (input as any).loteId as string | undefined;
+      let loteId = input.loteId as string | undefined;
       if (loteId) {
         const lote = await prisma.loteEstoque.findUnique({ where: { id: loteId } });
         if (!lote) throw new Error("Lote não encontrado");
-        await prisma.loteEstoque.update({ where: { id: loteId }, data: { quantidade: (parseFloat(lote.quantidade as any) + qtd).toString() } });
+        await prisma.loteEstoque.update({ where: { id: loteId }, data: { quantidade: (parseFloat(lote.quantidade as unknown as string) + qtd).toString() } });
       } else {
         const novo = await prisma.loteEstoque.create({ data: { organizacaoId, variacaoId, quantidade: qtd.toString() } });
         loteId = novo.id;
@@ -76,19 +78,31 @@ export class MovimentacaoEstoqueService {
         organizacaoId,
         variacaoId,
         loteId,
-        vendedorId: (input as any).vendedorId ?? null,
+        vendedorId: input.vendedorId ?? null,
         tipo: input.tipo,
         motivo: input.motivo,
-        quantidade: (input.quantidade as unknown as string),
-        precoUnitario: (input as any).precoUnitario ?? null,
-        total: (input as any).total ?? null,
-        canal: (input as any).canal ?? null,
-        observacoes: (input as any).observacoes ?? null,
+        quantidade: input.quantidade as unknown as string,
+        precoUnitario: input.precoUnitario ?? null,
+        total: input.total ?? null,
+        canal: input.canal ?? null,
+        observacoes: input.observacoes ?? null,
       });
     }
 
-    // fallback
-    return this.repo.criar({ ...input, organizacaoId, variacaoId } as any);
+    // fallback (cria uma única movimentação)
+    return this.repo.criar({
+      organizacaoId,
+      variacaoId: variacaoId!,
+      loteId: input.loteId ?? null,
+      vendedorId: input.vendedorId ?? null,
+      tipo: input.tipo,
+      motivo: input.motivo,
+      quantidade: input.quantidade,
+      precoUnitario: input.precoUnitario ?? null,
+      total: input.total ?? null,
+      canal: input.canal ?? null,
+      observacoes: input.observacoes ?? null,
+    });
   }
   async atualizar(id: string, input: MovimentacaoEstoqueUpdateInput) {
     const existing = await this.repo.buscarPorId(id);

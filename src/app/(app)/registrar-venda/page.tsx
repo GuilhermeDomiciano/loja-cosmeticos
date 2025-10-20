@@ -52,18 +52,20 @@ export default function RegistrarVendaPage() {
           if (me?.user?.sub) setVendedorId(me.user.sub);
         }
         const data = await varRes.json();
-        const list = Array.isArray(data) ? data : [];
+        const list: Variacao[] = Array.isArray(data) ? (data as Variacao[]) : [];
         setVariacoes(list);
         // carregar vendedores (papel vendedor ou sem papel)
         if (vendRes.ok) {
           const payload = await vendRes.json();
-          const arr = Array.isArray(payload) ? payload : payload?.data || [];
-          const mapped = arr.map((u: any) => ({ id: u.id, nome: u.nome })) as Array<{ id: string; nome: string }>;
+          const arr: Array<{ id: string; nome: string }> = Array.isArray(payload)
+            ? (payload as Array<{ id: string; nome: string }>)
+            : ((payload?.data as Array<{ id: string; nome: string }>) || []);
+          const mapped = arr.map((u) => ({ id: u.id, nome: u.nome })) as Array<{ id: string; nome: string }>;
           setVendedores(mapped);
         }
         // saldos
         if (list.length > 0) {
-          const salRes = await fetch("/api/estoque/saldos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ variacaoIds: list.map((v: any) => v.id) }) });
+          const salRes = await fetch("/api/estoque/saldos", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ variacaoIds: list.map((v) => v.id) }) });
           const payload = await salRes.json();
           if (salRes.ok) setSaldos(payload.saldos || {});
         }
