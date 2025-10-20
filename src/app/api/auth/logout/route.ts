@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { clearAuthCookie } from "@/lib/auth";
 
 export async function GET(req: Request) {
-  clearAuthCookie();
+  await clearAuthCookie();
   return NextResponse.redirect(new URL("/signin", req.url));
 }
 

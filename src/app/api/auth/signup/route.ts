@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       organizacaoId: org.id,
     });
 
-    setAuthCookie(token);
+    await setAuthCookie(token);
 
     const res = NextResponse.json({
       user: { id: user.id, nome: user.nome, email: user.email, organizacaoId: user.organizacaoId },

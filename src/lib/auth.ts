@@ -50,13 +50,13 @@ export async function verifyJwt(token: string): Promise<JwtPayload | null> {
   }
 }
 
-export function setAuthCookie(token: string) {
-  const cookieStore = cookies();
+export async function setAuthCookie(token: string) {
+  const cookieStore = await cookies();
   cookieStore.set({ ...cookieConfig, value: token });
 }
 
-export function clearAuthCookie() {
-  const cookieStore = cookies();
+export async function clearAuthCookie() {
+  const cookieStore = await cookies();
   cookieStore.set({ ...cookieConfig, value: "", maxAge: 0 });
 }
 
