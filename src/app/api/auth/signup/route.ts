@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hash } from "bcryptjs";
-import { createJwt, setAuthCookie } from "@/lib/auth";
+import { createJwt, getAuthCookieConfig } from "@/lib/auth";
 
 const bodySchema = z.object({
   nome: z.string().min(1, "Informe seu nome"),
@@ -51,13 +51,13 @@ export async function POST(req: Request) {
       organizacaoId: org.id,
     });
 
-    await setAuthCookie(token);
-
     const res = NextResponse.json({
       user: { id: user.id, nome: user.nome, email: user.email, organizacaoId: user.organizacaoId },
       organizacoes: [{ id: org.id, nome: org.nome }],
       message: "Conta criada com sucesso",
     });
+    const authCookie = getAuthCookieConfig(token);
+    res.cookies.set(authCookie.name, authCookie.value, authCookie.options);
     return res;
   } catch (e: unknown) {
     if (e instanceof z.ZodError) {

@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
-import { clearAuthCookie } from "@/lib/auth";
+import { getClearAuthCookieConfig } from "@/lib/auth";
 
 export async function GET(req: Request) {
-  await clearAuthCookie();
-  return NextResponse.redirect(new URL("/signin", req.url));
+  const res = NextResponse.redirect(new URL("/signin", req.url));
+  const clear = getClearAuthCookieConfig();
+  res.cookies.set(clear.name, clear.value, clear.options);
+  return res;
 }
 
 export async function POST(req: Request) {

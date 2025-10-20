@@ -14,6 +14,7 @@ export class ProdutoRepository {
     organizacaoId: string;
     nome: string;
     categoriaId?: string | null;
+    marcaId?: string | null;
     descricao?: string | null;
     sku?: string | null;
     ativo?: boolean;
@@ -26,6 +27,7 @@ export class ProdutoRepository {
     data: {
       nome?: string;
       categoriaId?: string | null;
+      marcaId?: string | null;
       descricao?: string | null;
       sku?: string | null;
       ativo?: boolean;

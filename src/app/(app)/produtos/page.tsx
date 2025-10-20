@@ -34,6 +34,8 @@ interface Produto {
   ativo: boolean;
   categoriaId?: string | null;
   categoria?: { nome: string } | null;
+  marcaId?: string | null;
+  marca?: { nome: string } | null;
 }
 
 interface Categoria {
@@ -41,9 +43,15 @@ interface Categoria {
   nome: string;
 }
 
+interface Marca {
+  id: string;
+  nome: string;
+}
+
 export default function ProdutosPage() {
   const [produtos, setProdutos] = useState<Produto[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [marcas, setMarcas] = useState<Marca[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState<string>("all");
@@ -56,6 +64,7 @@ export default function ProdutosPage() {
     descricao: "",
     sku: "",
     categoriaId: "",
+    marcaId: "",
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -63,6 +72,7 @@ export default function ProdutosPage() {
   useEffect(() => {
     fetchProdutos();
     fetchCategorias();
+    fetchMarcas();
   }, []);
 
   const fetchProdutos = async () => {
@@ -86,6 +96,16 @@ export default function ProdutosPage() {
       setCategorias(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Erro ao carregar categorias");
+    }
+  };
+  const fetchMarcas = async () => {
+    try {
+      const res = await fetch("/api/marcas");
+      if (!res.ok) throw new Error("Erro ao carregar marcas");
+      const data = await res.json();
+      setMarcas(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Erro ao carregar marcas");
     }
   };
 
@@ -122,6 +142,7 @@ export default function ProdutosPage() {
         body: JSON.stringify({
           ...formData,
           categoriaId: formData.categoriaId || null,
+          marcaId: formData.marcaId || null,
           imagemUrl,
         }),
       });
@@ -168,13 +189,14 @@ export default function ProdutosPage() {
       descricao: produto.descricao || "",
       sku: produto.sku || "",
       categoriaId: produto.categoriaId || "",
+      marcaId: produto.marcaId || "",
     });
     setDialogOpen(true);
   };
 
   const openCreateDialog = () => {
     setEditingProduto(null);
-    setFormData({ nome: "", descricao: "", sku: "", categoriaId: "" });
+    setFormData({ nome: "", descricao: "", sku: "", categoriaId: "", marcaId: "" });
     setImageFile(null);
     setDialogOpen(true);
   };
@@ -376,6 +398,22 @@ export default function ProdutosPage() {
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.nome}
                     </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="marca">Marca</Label>
+              <Select
+                value={formData.marcaId}
+                onValueChange={(value) => setFormData({ ...formData, marcaId: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma marca" />
+                </SelectTrigger>
+                <SelectContent>
+                  {marcas.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

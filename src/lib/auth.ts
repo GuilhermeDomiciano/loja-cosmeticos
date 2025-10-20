@@ -60,6 +60,28 @@ export async function clearAuthCookie() {
   cookieStore.set({ ...cookieConfig, value: "", maxAge: 0 });
 }
 
+export function getAuthCookieConfig(token: string) {
+  return {
+    name: COOKIE_NAME,
+    value: token,
+    options: {
+      httpOnly: true,
+      path: "/",
+      sameSite: "lax" as const,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * MAX_AGE_DAYS,
+    },
+  } as const;
+}
+
+export function getClearAuthCookieConfig() {
+  return {
+    name: COOKIE_NAME,
+    value: "",
+    options: { path: "/", maxAge: 0 },
+  } as const;
+}
+
 export async function getAuthToken(): Promise<string | null> {
   const cookieStore = await cookies();
   return cookieStore.get(COOKIE_NAME)?.value || null;

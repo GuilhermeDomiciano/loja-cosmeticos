@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcryptjs";
-import { createJwt, setAuthCookie } from "@/lib/auth";
+import { createJwt, getAuthCookieConfig } from "@/lib/auth";
 
 const bodySchema = z.object({
   email: z.string().email(),
@@ -39,8 +39,6 @@ export async function POST(req: Request) {
       organizacaoId: user.organizacaoId ?? undefined,
     });
 
-    await setAuthCookie(token);
-
     const res = NextResponse.json({
       user: {
         id: user.id,
@@ -53,6 +51,8 @@ export async function POST(req: Request) {
         : [],
       message: "Login OK",
     });
+    const authCookie = getAuthCookieConfig(token);
+    res.cookies.set(authCookie.name, authCookie.value, authCookie.options);
 
     return res;
   } catch (e: unknown) {

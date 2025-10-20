@@ -49,8 +49,28 @@ export default function AdminPage() {
         fetch("/api/admin/usuarios"),
       ]);
       if (oRes.status === 401 || uRes.status === 401) { setAuthed(false); return; }
-      setOrgs(await oRes.json());
-      setUsers(await uRes.json());
+
+      const oJson = await oRes.json().catch(() => ([]));
+      const uJson = await uRes.json().catch(() => ([]));
+
+      const orgList: Organizacao[] = Array.isArray(oJson)
+        ? oJson as Organizacao[]
+        : (Array.isArray(oJson?.data) ? oJson.data as Organizacao[] : []);
+      const userList: Usuario[] = Array.isArray(uJson)
+        ? uJson as Usuario[]
+        : (Array.isArray(uJson?.data) ? uJson.data as Usuario[] : []);
+
+      if (!oRes.ok) {
+        const msg = (oJson && typeof oJson === 'object' && 'message' in oJson) ? String((oJson as Record<string, unknown>).message) : 'Erro ao carregar organizações';
+        toast.error(String(msg));
+      }
+      if (!uRes.ok) {
+        const msg = (uJson && typeof uJson === 'object' && 'message' in uJson) ? String((uJson as Record<string, unknown>).message) : 'Erro ao carregar usuários';
+        toast.error(String(msg));
+      }
+
+      setOrgs(orgList);
+      setUsers(userList);
     } finally { setLoading(false); }
   };
 
@@ -199,3 +219,6 @@ export default function AdminPage() {
     </div>
   );
 }
+
+
+

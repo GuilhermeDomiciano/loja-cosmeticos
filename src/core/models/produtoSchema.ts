@@ -5,6 +5,7 @@ export const produtoCreateSchema = z.object({
   organizacaoId: zUuid,
   nome: z.string().trim().min(1, "nome é obrigatório"),
   categoriaId: zUuid.optional().nullable(),
+  marcaId: zUuid.optional().nullable(),
   descricao: z.string().optional(),
   sku: z.string().optional(),
   ativo: z.boolean().optional(),
@@ -14,6 +15,7 @@ export const produtoCreateSchema = z.object({
 export const produtoUpdateSchema = z.object({
   nome: z.string().trim().min(1, "nome é obrigatório").optional(),
   categoriaId: zUuid.optional().nullable(),
+  marcaId: zUuid.optional().nullable(),
   descricao: z.string().optional().nullable(),
   sku: z.string().optional().nullable(),
   ativo: z.boolean().optional(),
