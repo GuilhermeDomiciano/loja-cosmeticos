@@ -4,14 +4,14 @@ import { prisma } from "@/lib/prisma";
 
 const ADMIN_COOKIE = "admin_auth";
 
-function requireAdmin() {
-  const c = cookies().get(ADMIN_COOKIE)?.value;
+async function requireAdmin() {
+  const c = (await cookies()).get(ADMIN_COOKIE)?.value;
   if (c !== "ok") throw new Error("unauthorized");
 }
 
 export async function GET() {
   try {
-    requireAdmin();
+    await requireAdmin();
     const orgs = await prisma.organizacao.findMany({ orderBy: { criadoEm: "desc" } });
     return NextResponse.json(orgs);
   } catch (e) {
@@ -24,7 +24,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    requireAdmin();
+    await requireAdmin();
     const { nome } = await req.json();
     if (!nome || typeof nome !== "string") return NextResponse.json({ message: "nome é obrigatório" }, { status: 400 });
     const exists = await prisma.organizacao.findUnique({ where: { nome } });
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
 export async function PUT(req: Request) {
   try {
-    requireAdmin();
+    await requireAdmin();
     const { id, nome } = await req.json();
     if (!id || !nome) return NextResponse.json({ message: "id e nome são obrigatórios" }, { status: 400 });
     const org = await prisma.organizacao.update({ where: { id }, data: { nome } });

@@ -6,14 +6,14 @@ import { hash } from "bcryptjs";
 
 const ADMIN_COOKIE = "admin_auth";
 
-function requireAdmin() {
-  const c = cookies().get(ADMIN_COOKIE)?.value;
+async function requireAdmin() {
+  const c = (await cookies()).get(ADMIN_COOKIE)?.value;
   if (c !== "ok") throw new Error("unauthorized");
 }
 
 export async function GET(req: Request) {
   try {
-    requireAdmin();
+    await requireAdmin();
     const { searchParams } = new URL(req.url);
     const organizacaoId = searchParams.get("organizacaoId") || undefined;
     const users = await prisma.usuario.findMany({
@@ -40,7 +40,7 @@ const createSchema = z.object({
 
 export async function POST(req: Request) {
   try {
-    requireAdmin();
+    await requireAdmin();
     const body = await req.json();
     const { organizacaoId, nome, email, senha, papel } = createSchema.parse(body);
     const exists = await prisma.usuario.findUnique({ where: { email } });
@@ -69,7 +69,7 @@ const updateSchema = z.object({
 
 export async function PUT(req: Request) {
   try {
-    requireAdmin();
+    await requireAdmin();
     const body = await req.json();
     const { id, bloqueado, nome, email, senha, papel } = updateSchema.parse(body);
     const data: { nome?: string; email?: string; senha?: string; papel?: string } = {};
